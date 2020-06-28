@@ -9,11 +9,39 @@ Ask is to:
 - Minimize impact to upstream systems & downstream consumers.
 - History load is not in scope.
 
+### Data
+Data would be sourced in CSV format; Reference data would be sourced on an ad-hoc basis as and when the data changes. Transaction data would be sourced on a daily basis. 
+
+Dataset contains three categories of data:
+
+1. **Clients Data**: List of all Clients; CSV format; Estimated volume ~5 mil records; Feed frequency: ad-hoc.
+2. **Top Clients Data**: List of all Clients; CSV format; Estimated volume < 1000 records; Feed frequency: ad-hoc.
+3. **Investigations Data**: Investigations at a daily grain. Estimated volume < 100k records; Feed frequency: daily.
+
+
+### Schema
+Star Schema made up of two dimensions and two facts would be built. Details:
+
+#### Dimension Tables
+1. **clients** - clients dimension
+   - client_id, client_name
+
+2. **clients_top** - top clients dimension
+   - client_id, top_client_ind
+
+#### Fact Table
+3. **fact_detail** - metrics at lowest grain
+   - bus_dt, inqr_id, client_id, calc_rslv_dt, case_entr_dt, frst_rslv_dt, last_ropned_dt, ropn_cn, inqr_amt, inqr_amt_ccy, case_own_nm, first_tat, last_tat, top_client_ind
+
+4. **fact_summ** - metrics aggregated at client grain
+   - bs_dt, client_id, total_tat, avg_tat, total_value, rslv_cnt
+
+
+### Architecture
+
 Two options were evaluated as part of this POC:
 1. Cloud Data Warehouse
 2. Cloud Data Lake - Serverless
-
-### Architecture
 
 #### Option 1 | Cloud Data Warehouse
 - ![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/option1.png)
@@ -67,7 +95,8 @@ Three Python files:
 - Transformation
 	- Lambda Function(s)
 		- Invoked on upload of source file.
-		- Invokes Glue Transform job
+		- For smaller datasets, transformation would be carried out within the function
+		- For larger datasets, Glue Transform job would be invoked for transformation
 	- Glue ETL(s)
 		- Transforms source data into partitioned parquet format.
 		- Invokes Glue Crawler job
@@ -99,32 +128,3 @@ Three Python files:
 - `/option2/glue_transform_clients.py`: Glue ETL to transform CSV into Parquets.
 - `/option2/glue_transform_investigations.py`: Glue ETL to transform CSV into partitioned Parquets and invoke Glue Crawler for cataloging.
 - `/option2/prototype_spark.ipynb`: Jupyter notebook for locally prototyping code.
-
-
-### Data
-Data would be sourced in CSV format; Reference data would be sourced on an ad-hoc basis as and when the data changes. Transaction data would be sourced on a daily basis. 
-
-Dataset contains three categories of data:
-
-1. **Clients Data**: List of all Clients; CSV format; Estimated volume ~5 mil records; Feed frequency: ad-hoc.
-
-2. **Top Clients Data**: List of all Clients; CSV format; Estimated volume < 1000 records; Feed frequency: ad-hoc.
-
-3. **Investigations Data**: Investigations at a daily grain. Estimated volume < 100k records; Feed frequency: daily.
-
-
-### Schema
-Star Schema made up of two dimensions and two facts would be built. Details:
-
-#### Dimension Tables
-1. **clients** - clients dimension
-   - client_id, client_name
-2. **clients_top** - top clients dimension
-   - client_id, top_client_ind
-
-#### Fact Table
-3. **fact_detail** - metrics at lowest grain
-   - bus_dt, inqr_id, client_id, calc_rslv_dt, case_entr_dt, frst_rslv_dt, last_ropned_dt, ropn_cn, inqr_amt, inqr_amt_ccy, case_own_nm, first_tat, last_tat, top_client_ind
-
-4. **fact_summ** - metrics aggregated at client grain
-   - bs_dt, client_id, total_tat, avg_tat, total_value, rslv_cnt
