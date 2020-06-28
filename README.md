@@ -1,7 +1,7 @@
 # Project: Cloud Adoption POC
 
 ## Project Overview
-An organization is looking to modernize its data analytics application and move it onto the cloud. A POC is required to demonstrate feasability and evaluate architectures for a pilot set of data pipelines. 
+An organization is looking to modernize its data analytics application and move it onto the cloud. A POC is required to demonstrate feasability, evaluate architectures and ascertain cost for a pilot set of data pipelines. 
 
 Ask is to:
 - Build a data pipelines to transform source data and populate a data warehouse / data lake to support existing on-premise analytics. 
@@ -10,13 +10,13 @@ Ask is to:
 - History load is not in scope.
 
 ### Data
-Data would be sourced in CSV format; Reference data would be sourced on an ad-hoc basis as and when the data changes. Transaction data would be sourced on a daily basis. 
+Data would be sourced in CSV format; Reference data would be sourced on an ad-hoc basis as and when the data changes. Transactional data would be sourced three times daily basis. 
 
 Dataset contains three categories of data:
 
 1. **Clients Data**: List of all Clients; CSV format; Estimated volume ~5 mil records; Feed frequency: ad-hoc.
 2. **Top Clients Data**: List of all Clients; CSV format; Estimated volume < 1000 records; Feed frequency: ad-hoc.
-3. **Investigations Data**: Investigations at a daily grain. Estimated volume < 100k records; Feed frequency: daily.
+3. **Transactional Data**: Transactions at a daily grain. Estimated volume < 100k records; Feed frequency: thrice a day.
 
 
 ### Schema
@@ -25,14 +25,12 @@ Star Schema made up of two dimensions and two facts would be built. Details:
 #### Dimension Tables
 1. **clients** - clients dimension
    - client_id, client_name
-
 2. **clients_top** - top clients dimension
    - client_id, top_client_ind
 
 #### Fact Table
 3. **fact_detail** - metrics at lowest grain
    - bus_dt, inqr_id, client_id, calc_rslv_dt, case_entr_dt, frst_rslv_dt, last_ropned_dt, ropn_cn, inqr_amt, inqr_amt_ccy, case_own_nm, first_tat, last_tat, top_client_ind
-
 4. **fact_summ** - metrics aggregated at client grain
    - bs_dt, client_id, total_tat, avg_tat, total_value, rslv_cnt
 
@@ -44,12 +42,12 @@ Two options were evaluated as part of this POC:
 2. Cloud Data Lake - Serverless
 
 #### Option 1 | Cloud Data Warehouse
-- ![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/option1.png)
+![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/option1.png)
 
 - Ingestion
 	- Data sourced from existing on-premise serves and staged on S3 via DataSync
 	- S3 event trigger enabled to invoke Lambda Function on upload of object
-	- Lifecycle rule enable to archive objects every 3 days into S3 Glacier
+	- Lifecycle rule enable to archive objects every 1 day into S3 Glacier
 
 - Transformation
 	- Lambda Function(s)
@@ -85,12 +83,12 @@ Three Python files:
 
 
 #### Option 2 | Cloud Data Lake - Serverless
-- ![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/option2.png)
+![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/option2.png)
 
 - Ingestion
 	- Data sourced from existing on-premise serves and staged on S3 via DataSync
 	- S3 event trigger enabled to invoke Lambda Function on upload of object
-	- Lifecycle rule enable to archive objects every 3 days into S3 Glacier
+	- Lifecycle rule enable to archive objects every 1 day into S3 Glacier
 
 - Transformation
 	- Lambda Function(s)
@@ -128,3 +126,11 @@ Three Python files:
 - `/option2/glue_transform_clients.py`: Glue ETL to transform CSV into Parquets.
 - `/option2/glue_transform_investigations.py`: Glue ETL to transform CSV into partitioned Parquets and invoke Glue Crawler for cataloging.
 - `/option2/prototype_spark.ipynb`: Jupyter notebook for locally prototyping code.
+
+
+### Cost Comparison
+
+- Rough cost estimates/month
+- Additional cost for connectivity [Direct Connect / VPN] and data transfer to be factored in
+
+![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/costcomparison.png)
