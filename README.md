@@ -131,6 +131,6 @@ Three Python files:
 ### Cost Comparison
 
 - Rough cost estimates/month
-- Additional cost for connectivity [Direct Connect / VPN] and data transfer to be factored in
+- Connectivity [Direct Connect / VPN] and data transfer cost not factored in
 
 ![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/costcomparison.png)
