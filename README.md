@@ -1,10 +1,10 @@
 # Project: Cloud Adoption POC
 
-## Project Overview
-An organization is looking to modernize its data analytics application and move it onto the cloud. A POC is required to demonstrate feasability, evaluate architectures and ascertain cost for a pilot set of data pipelines. 
+## Overview
+An organization is looking to modernize its data analytics application and migrate it onto the cloud. To demonstrate feasability, evaluate architectures and ascertain cost for a pilot set of data pipelines, there is a need for a POC. 
 
 Ask is to:
-- Build a data pipelines to transform source data and populate a data warehouse / data lake to support existing on-premise analytics. 
+- Build data pipelines to transform source data and populate a data warehouse / data lake to support existing on-premise analytics. 
 - S3 to be staging area. 
 - Minimize impact to upstream systems & downstream consumers.
 - History load is not in scope.
@@ -15,7 +15,7 @@ Data would be sourced in CSV format; Reference data would be sourced on an ad-ho
 Dataset contains three categories of data:
 
 1. **Clients Data**: List of all Clients; CSV format; Estimated volume ~5 mil records; Feed frequency: ad-hoc.
-2. **Top Clients Data**: List of all Clients; CSV format; Estimated volume < 1000 records; Feed frequency: ad-hoc.
+2. **Top Clients Data**: List of selected Top Clients; CSV format; Estimated volume < 1000 records; Feed frequency: ad-hoc.
 3. **Transactional Data**: Transactions at a daily grain. Estimated volume < 100k records; Feed frequency: thrice a day.
 
 
@@ -45,17 +45,17 @@ Two options were evaluated as part of this POC:
 ![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/option1.png)
 
 - Ingestion
-	- Data sourced from existing on-premise serves and staged on S3 via DataSync
+	- Data sourced from existing on-premise servers and staged on S3 via DataSync
 	- S3 event trigger enabled to invoke Lambda Function on upload of object
-	- Lifecycle rule enable to archive objects every 1 day into S3 Glacier
+	- Lifecycle rule enabled to archive objects every 1 day into S3 Glacier
 
 - Transformation
 	- Lambda Function(s)
-		- Invoked on upload of source file.
+		- Invoked on upload of source file
 		- Transforms data and loads Redshift table(s)
 
 - Analytics
-	- Downstream consumers would repoint to Redshift end point for analytics
+	- Downstream consumers would repoint to Redshift end-point for analytics
 
 ##### Pre-requisites
 
@@ -72,13 +72,16 @@ Note: Code base is on **Python 3.7** and **PySpark**.
 
 ##### Code
 
-Three Python files:
-
+Two Lambda Functions (Python): 
 - `/option1/lambda_s3redshift_clients.py`: Lambda function to transform source data and populate Redshift.
 - `/option1/lambda_s3redshift_investigations.py`: Lambda function to transform source data and populate Redshift.
+
+Redshift SQLs: 
 - `/option1/redshift_1_CREATEs.sql`: CREATE statements for Redshift tables.
 - `/option1/redshift_2_COPYs.sql`: COPY statements to load data from S3 to Redshift.
 - `/option1/redshift_3_INSERTs.sql`: INSERT statement to load data from stage to fact within Redshift.
+
+Jupyter Notebook for Prototyping:
 - `/option1/prototype_redshift.ipynb`: Jupyter notebook for locally prototyping code.
 
 
@@ -86,13 +89,13 @@ Three Python files:
 ![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/option2.png)
 
 - Ingestion
-	- Data sourced from existing on-premise serves and staged on S3 via DataSync
+	- Data sourced from existing on-premise servers and staged on S3 via DataSync
 	- S3 event trigger enabled to invoke Lambda Function on upload of object
-	- Lifecycle rule enable to archive objects every 1 day into S3 Glacier
+	- Lifecycle rule enabled to archive objects every 1 day into S3 Glacier
 
 - Transformation
 	- Lambda Function(s)
-		- Invoked on upload of source file.
+		- Invoked on upload of source file
 		- For smaller datasets, transformation would be carried out within the function
 		- For larger datasets, Glue Transform job would be invoked for transformation
 	- Glue ETL(s)
@@ -119,18 +122,21 @@ Note: Code base is on **Python 3.7** and **PySpark**.
 
 ##### Code
 
-Three Python files:
-
+Two Lambda Functions (Python): 
 - `/option2/lambda_s3glue_clients.py`: Lambda function to trigger Glue Job to process source data.
 - `/option2/lambda_s3glue_investigations.py`: Lambda function to trigger Glue Job to process source data.
+
+Two Glue Scripts (PySpark):
 - `/option2/glue_transform_clients.py`: Glue ETL to transform CSV into Parquets.
 - `/option2/glue_transform_investigations.py`: Glue ETL to transform CSV into partitioned Parquets and invoke Glue Crawler for cataloging.
+
+Jupyter Notebook for Prototyping:
 - `/option2/prototype_spark.ipynb`: Jupyter notebook for locally prototyping code.
 
 
-### Cost Comparison
+### Price Comparison
 
-- Rough cost estimates/month
+- Rough monthly estimates
 - Connectivity [Direct Connect / VPN] and data transfer cost not factored in
 
 ![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/costcomparison.png)
