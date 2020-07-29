@@ -12,7 +12,7 @@ Ask is to:
 ### Data
 Data would be sourced in CSV format; Reference data would be sourced on an ad-hoc basis as and when the data changes. Transactional data would be sourced three times daily basis. 
 
-![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/images/blob/master/scope.png)
+![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/images/scope.png)
 
 Dataset contains three categories of data:
 
@@ -44,7 +44,7 @@ Two options were evaluated as part of this POC:
 2. Cloud Data Lake - Serverless
 
 #### Option 1 | Cloud Data Warehouse
-![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/images/blob/master/option1.png)
+![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/images/option1.png)
 
 - Ingestion
 	- Data sourced from existing on-premise servers and staged on S3 via DataSync
@@ -88,7 +88,7 @@ Jupyter Notebook for Prototyping:
 
 
 #### Option 2 | Cloud Data Lake - Serverless
-![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/images/blob/master/option2.png)
+![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/images/option2.png)
 
 - Ingestion
 	- Data sourced from existing on-premise servers and staged on S3 via DataSync
@@ -141,4 +141,4 @@ Jupyter Notebook for Prototyping:
 - Rough monthly estimates
 - Connectivity [Direct Connect / VPN] and data transfer cost not factored in
 
-![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/images/blob/master/costcomparison.png)
+![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/images/costcomparison.png)
