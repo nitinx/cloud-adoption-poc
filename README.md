@@ -138,7 +138,8 @@ Jupyter Notebook for Prototyping:
 
 ### Price Comparison
 
-- Rough monthly estimates
-- Connectivity [Direct Connect / VPN] and data transfer cost not factored in
+- Rough annual estimate for Production environment (DR & lower environments additional)
+- Data transfer cost not factored in
+- Assumed data scanned annually by Athena is 120 GB
 
 ![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/images/costcomparison.png)
