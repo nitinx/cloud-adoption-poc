@@ -3,13 +3,22 @@
 ## Overview
 An organization is looking to modernize its data analytics application and migrate it onto the cloud. To demonstrate feasability, evaluate architectures and ascertain cost for a pilot set of data pipelines, there is a need for a POC. 
 
-Ask is to:
+#### Scope
 - Build data pipelines to transform source data and populate a data warehouse / data lake to support existing on-premise analytics. 
 - S3 to be staging area. 
 - Minimize impact to upstream systems & downstream consumers.
 - History load is not in scope.
 
-### Data
+#### Benefits
+- Reduced infrastructure cost with pay-as-you-go model
+  - Elastic environments (for ex. services can be scaled up during peak analytic/reporting windows and then scaled down)
+  - Pause and resume services based on usage (for ex. lower environments can be paused during weekends)
+  - ETL services billed only during job execution time
+- Reduced maintenance cost due to Serverless architecture / managed services. AWS takes care of OS patching, upgrades etc. for underlying infrastructure.
+- Performance gain with modern tech stack (Apache Spark / Redshift’s COPY command)
+
+
+## Data
 Data would be sourced in CSV format; Reference data would be sourced on an ad-hoc basis as and when the data changes. Transactional data would be sourced three times daily basis. 
 
 ![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/images/scope.png)
@@ -21,7 +30,7 @@ Dataset contains three categories of data:
 3. **Transactional Data**: Transactions at a daily grain. Estimated volume < 100k records; Feed frequency: thrice a day.
 
 
-### Schema
+## Schema
 Star Schema made up of two dimensions and two facts would be built. Details:
 
 #### Dimension Tables
@@ -30,36 +39,39 @@ Star Schema made up of two dimensions and two facts would be built. Details:
 2. **clients_top** - top clients dimension
    - client_id, top_client_ind
 
-#### Fact Table
+#### Fact Tables
 3. **fact_detail** - metrics at lowest grain
    - bus_dt, inqr_id, client_id, calc_rslv_dt, case_entr_dt, frst_rslv_dt, last_ropned_dt, ropn_cn, inqr_amt, inqr_amt_ccy, case_own_nm, first_tat, last_tat, top_client_ind
 4. **fact_summ** - metrics aggregated at client grain
    - bs_dt, client_id, total_tat, avg_tat, total_value, rslv_cnt
 
 
-### Architecture
+## Architecture
 
 Two options were evaluated as part of this POC:
 1. Cloud Data Warehouse
 2. Cloud Data Lake - Serverless
 
-#### Option 1 | Cloud Data Warehouse
+### Option 1 | Cloud Data Warehouse
 ![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/images/option1.png)
 
-- Ingestion
-	- Data sourced from existing on-premise servers and staged on S3 via DataSync
-	- S3 event trigger enabled to invoke Lambda Function on upload of object
-	- Lifecycle rule enabled to archive objects every 1 day into S3 Glacier
+- On-premise Integration / Data Migration
+  - AWS DataSync agent to be installed on-premise to transfer files to cloud via AWS Direct Connect. 
+  - AWS Data Migration Service could be leveraged to migrate data over from on-premise Oracle to Amazon Redshift. 
 
-- Transformation
-	- Lambda Function(s)
-		- Invoked on upload of source file
-		- Transforms data and loads Redshift table(s)
+- Storage
+  - Amazon S3 to host landing/staging area. Lifecycle rules setup to transition (to S3 Glacier) and expiry source feeds. Amazon Redshift to host data mart.
+
+- Compute
+  - AWS Lambda function triggered on file arrival and ELT into Amazon Redshift. 
 
 - Analytics
-	- Downstream consumers would repoint to Redshift end-point for analytics
+  - Tableau connects natively to Amazon Redshift. JDBC & ODBC drivers also available. 
 
-##### Pre-requisites
+- Monitoring
+  - AWS Lambda in conjunction with Amazon CloudWatch used for monitoring. 
+
+#### Pre-requisites
 
 An Amazon Web Services [AWS] account with access to following services: 
 
@@ -72,7 +84,7 @@ An Amazon Web Services [AWS] account with access to following services:
 
 Note: Code base is on **Python 3.7** and **PySpark**.
 
-##### Code
+#### Code
 
 Two Lambda Functions (Python): 
 - `/option1/lambda_s3redshift_clients.py`: Lambda function to transform source data and populate Redshift.
@@ -87,28 +99,28 @@ Jupyter Notebook for Prototyping:
 - `/option1/prototype_redshift.ipynb`: Jupyter notebook for locally prototyping code.
 
 
-#### Option 2 | Cloud Data Lake - Serverless
+### Option 2 | Cloud Data Lake - Serverless
 ![Process Flow](https://github.com/nitinx/de-cloud-adoption-poc/blob/master/images/option2.png)
 
-- Ingestion
-	- Data sourced from existing on-premise servers and staged on S3 via DataSync
-	- S3 event trigger enabled to invoke Lambda Function on upload of object
-	- Lifecycle rule enabled to archive objects every 1 day into S3 Glacier
+- On-premise Integration
+  - AWS DataSync agent to be installed on-premise to transfer files to cloud via AWS Direct Connect. 
 
-- Transformation
-	- Lambda Function(s)
-		- Invoked on upload of source file
-		- For smaller datasets, transformation would be carried out within the function
-		- For larger datasets, Glue Transform job would be invoked for transformation
-	- Glue ETL(s)
-		- Transforms source data into partitioned parquet format.
-		- Invokes Glue Crawler job
+- Storage
+  - Amazon S3 to host landing/staging area and the data lake. Lifecycle rules setup to transition (to S3 Glacier) and expire source feeds. 
+
+- Compute
+  - AWS Lambda function triggered on file arrival. Transformation of small datasets by Lambda, larger datasets by AWS Glue (leverages Apache Spark). Data transformed and stored in Parquet format. 
 
 - Analytics
-	- Glue Crawler would update Data Catalogue for usage by Athena
-	- Downstream consumers would repoint to Athena end point for analytics
+  - Glue Crawler would update Data Catalogue for usage by Athena.
+  - Transformed data would be exposed via Amazon Athena for analytics. Supports standard SQL. Tableau connects natively. JDBC & ODBC drivers also available. 
+  - Column-level access control can be provided by leveraging AWS Lake Formation. 
 
-##### Pre-requisites
+- Monitoring
+  - AWS Lambda in conjunction with Amazon CloudWatch used for monitoring. 
+
+
+#### Pre-requisites
 
 An Amazon Web Services [AWS] account with access to following services: 
 
@@ -122,7 +134,7 @@ An Amazon Web Services [AWS] account with access to following services:
 
 Note: Code base is on **Python 3.7** and **PySpark**.
 
-##### Code
+#### Code
 
 Two Lambda Functions (Python): 
 - `/option2/lambda_s3glue_clients.py`: Lambda function to trigger Glue Job to process source data.
@@ -136,7 +148,7 @@ Jupyter Notebook for Prototyping:
 - `/option2/prototype_spark.ipynb`: Jupyter notebook for locally prototyping code.
 
 
-### Price Comparison
+## Price Comparison
 
 - Rough annual estimate for Production environment (DR & lower environments additional)
 - Data transfer cost not factored in
